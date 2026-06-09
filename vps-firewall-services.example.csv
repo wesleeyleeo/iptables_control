@@ -1,0 +1,9 @@
+name,family,target,protocol,input_port,docker_port,source
+# 普通主机服务：开放 IPv4 + IPv6 的 80/tcp
+http,46,input,tcp,80,,
+# 普通主机服务：开放 IPv4 + IPv6 的 443/tcp
+https,46,input,tcp,443,,
+# Docker 服务示例：外部端口 23656，容器内部端口 5230
+my-docker-app,46,both,tcp,23656,5230,
+# 只允许固定来源访问 SSH 管理端口
+ssh-office,46,input,tcp,22,,1.2.3.4/32
