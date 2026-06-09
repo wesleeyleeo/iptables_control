@@ -3,10 +3,8 @@
 脚本位置：
 
 ```bash
- curl -fsSL https://raw.githubusercontent.com/wesleeyleeo/iptables_control/main/vps-firewall-menu.sh -o
-  vps-firewall-menu.sh
-  chmod +x vps-firewall-menu.sh
-  sudo ./vps-firewall-menu.sh
+  curl -fsSL https://raw.githubusercontent.com/wesleeyleeo/iptables_control/main/vps-firewall-menu.sh -o
+  vps-firewall-menu.sh && chmod +x vps-firewall-menu.sh && sudo ./vps-firewall-menu.sh
 
 ```
 
