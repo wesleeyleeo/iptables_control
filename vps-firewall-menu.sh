@@ -670,6 +670,43 @@ restore_menu() {
   fi
 }
 
+install_fw_command() {
+  local script_path install_path wrapper_path existing
+  script_path="$0"
+  install_path="/usr/local/sbin/vps-firewall-menu.sh"
+  wrapper_path="/usr/local/bin/fw"
+
+  if has_cmd readlink; then
+    script_path="$(readlink -f "$0" 2>/dev/null || printf "%s" "$0")"
+  fi
+
+  mkdir -p /usr/local/sbin /usr/local/bin
+  cp "$script_path" "$install_path"
+  chmod 755 "$install_path"
+
+  if command -v fw >/dev/null 2>&1; then
+    existing="$(command -v fw)"
+    if [[ "$existing" != "$wrapper_path" ]]; then
+      warn "系统里已经有 fw：$existing"
+      if ! confirm "是否覆盖 /usr/local/bin/fw"; then
+        warn "已安装主脚本到 $install_path，但未覆盖 fw。"
+        return
+      fi
+    fi
+  fi
+
+  cat > "$wrapper_path" <<EOF
+#!/usr/bin/env sh
+if [ "\$(id -u)" -ne 0 ]; then
+  exec sudo "$install_path" "\$@"
+fi
+exec "$install_path" "\$@"
+EOF
+  chmod 755 "$wrapper_path"
+  ok "已安装快捷命令：fw"
+  ok "以后直接执行：fw"
+}
+
 ensure_rule_at_top() {
   local bin="$1"
   local chain="$2"
@@ -1100,6 +1137,7 @@ main_menu() {
     printf " 10) 批量导入服务配置 CSV\n"
     printf " 11) 应急：临时全放通\n"
     printf " 12) 完全重置为基础规则\n"
+    printf " 13) 安装/更新 fw 快捷命令\n"
     printf "  0) 退出\n\n"
     read -r -p "请选择: " choice
     case "$choice" in
@@ -1115,6 +1153,7 @@ main_menu() {
       10) batch_import_menu; pause ;;
       11) emergency_allow_all; pause ;;
       12) reset_baseline; pause ;;
+      13) install_fw_command; pause ;;
       0) exit 0 ;;
       *) warn "无效选择"; pause ;;
     esac
