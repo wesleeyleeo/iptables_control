@@ -3,14 +3,11 @@
 脚本位置：
 
 ```bash
-/Downloads/vps-firewall-menu.sh
-```
+ curl -fsSL https://raw.githubusercontent.com/wesleeyleeo/iptables_control/main/vps-firewall-menu.sh -o
+  vps-firewall-menu.sh
+  chmod +x vps-firewall-menu.sh
+  sudo ./vps-firewall-menu.sh
 
-上传到 VPS 后执行：
-
-```bash
-chmod +x vps-firewall-menu.sh
-sudo ./vps-firewall-menu.sh
 ```
 
 ## 能做什么
