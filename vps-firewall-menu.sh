@@ -748,6 +748,60 @@ ensure_docker_user_drop() {
   fi
 }
 
+insert_forward_rule_after_docker_user() {
+  local bin="$1"
+  shift
+  if "$bin" -C FORWARD "$@" >/dev/null 2>&1; then
+    return
+  fi
+  if "$bin" -C FORWARD -j DOCKER-USER >/dev/null 2>&1; then
+    "$bin" -I FORWARD 2 "$@"
+  else
+    "$bin" -I FORWARD 1 "$@"
+  fi
+}
+
+ensure_docker_forward_family() {
+  local family="$1"
+  local bin
+  bin="$(bin_for_family "$family")"
+
+  if ! family_available "$family"; then
+    warn "$(family_name "$family") 工具不存在，跳过。"
+    return
+  fi
+  if ! chain_exists "$bin" DOCKER-USER; then
+    warn "$(family_name "$family") DOCKER-USER 不存在，跳过 Docker 转发修复。"
+    return
+  fi
+
+  backup_once
+  ensure_rule_at_top "$bin" FORWARD -j DOCKER-USER
+  insert_forward_rule_after_docker_user "$bin" -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+
+  if chain_exists "$bin" DOCKER-FORWARD; then
+    insert_forward_rule_after_docker_user "$bin" -j DOCKER-FORWARD
+  fi
+  if chain_exists "$bin" DOCKER; then
+    insert_forward_rule_after_docker_user "$bin" -j DOCKER
+  fi
+
+  ensure_rule_at_top "$bin" DOCKER-USER -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+  ensure_docker_user_drop "$bin"
+  ok "$(family_name "$family") Docker 转发链已修复。"
+}
+
+fix_docker_forward_menu() {
+  local families
+  families="$(select_family)"
+  for_each_family "$families" ensure_docker_forward_family
+  if confirm "是否立即保存规则"; then
+    for_each_family "$families" save_rules
+  else
+    warn "未保存，重启或恢复后可能丢失。"
+  fi
+}
+
 enable_default_deny_family() {
   local family="$1"
   local bin
@@ -775,6 +829,7 @@ enable_default_deny_family() {
   fi
 
   if chain_exists "$bin" DOCKER-USER; then
+    ensure_docker_forward_family "$family"
     ensure_rule_at_top "$bin" DOCKER-USER -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
     ensure_docker_user_drop "$bin"
     ok "$(family_name "$family") 已启用默认拒绝，并补齐 DOCKER-USER 末尾 DROP。"
@@ -1138,6 +1193,7 @@ main_menu() {
     printf " 11) 应急：临时全放通\n"
     printf " 12) 完全重置为基础规则\n"
     printf " 13) 安装/更新 fw 快捷命令\n"
+    printf " 14) 修复 Docker 转发链\n"
     printf "  0) 退出\n\n"
     read -r -p "请选择: " choice
     case "$choice" in
@@ -1154,6 +1210,7 @@ main_menu() {
       11) emergency_allow_all; pause ;;
       12) reset_baseline; pause ;;
       13) install_fw_command; pause ;;
+      14) fix_docker_forward_menu; pause ;;
       0) exit 0 ;;
       *) warn "无效选择"; pause ;;
     esac
