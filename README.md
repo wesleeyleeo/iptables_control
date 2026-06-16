@@ -6,6 +6,12 @@
 wget -O vps-firewall-menu.sh https://raw.githubusercontent.com/wesleeyleeo/iptables_control/main/vps-firewall-menu.sh && chmod +x vps-firewall-menu.sh && sudo ./vps-firewall-menu.sh
 ```
 
+
+fail2ban命令
+```bash
+ curl -fsSL https://raw.githubusercontent.com/wesleeyleeo/iptables_control/main/setup-fail2ban-ssh.sh -o /tmp/f2b.sh && sudo bash /tmp/f2b.sh menu
+```
+
 ## 能做什么
 
 - 查看 IPv4/IPv6 的 `INPUT` 和 `DOCKER-USER` 规则编号
