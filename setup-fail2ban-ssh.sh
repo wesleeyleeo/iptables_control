@@ -88,6 +88,14 @@ echo "[5/5] 启动 fail2ban..."
 systemctl enable --now fail2ban
 systemctl restart fail2ban
 
+echo "等待 fail2ban 启动..."
+for i in $(seq 1 10); do
+  if fail2ban-client ping >/dev/null 2>&1; then
+    break
+  fi
+  sleep 1
+done
+
 echo
 echo "完成。当前状态："
 fail2ban-client status || true
