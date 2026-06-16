@@ -27,7 +27,8 @@ echo "[2/5] 检测 SSH 端口..."
 
 SSH_PORT=""
 if command -v sshd >/dev/null 2>&1; then
-  SSH_PORT="$((sshd -T 2>/dev/null || true) | awk '/^port /{print $2; exit}')"
+  SSHD_CONFIG="$(sshd -T 2>/dev/null || true)"
+  SSH_PORT="$(printf '%s\n' "$SSHD_CONFIG" | awk '/^port /{print $2; exit}')"
 fi
 
 if [ -z "$SSH_PORT" ]; then
