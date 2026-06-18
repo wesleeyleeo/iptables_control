@@ -12,6 +12,13 @@ fail2ban命令
  curl -fsSL https://raw.githubusercontent.com/wesleeyleeo/iptables_control/main/setup-fail2ban-ssh.sh -o /tmp/f2b.sh && sudo bash /tmp/f2b.sh menu
 ```
 
+
+迁移docker数据
+```bash
+ curl -fsSL https://raw.githubusercontent.com/wesleeyleeo/iptables_control/main/migrate-docker-data.sh | sudo bash
+
+```
+
 ## 能做什么
 
 - 查看 IPv4/IPv6 的 `INPUT` 和 `DOCKER-USER` 规则编号
